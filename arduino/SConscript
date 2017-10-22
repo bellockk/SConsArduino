@@ -1,1 +1,4 @@
-StaticLibrary('core', [Glob(p) for p in ['*.c', '*.cpp']])
+Import('env')
+local_env = env.Clone()
+local_env.Append(CPPPATH='.')
+local_env.StaticLibrary('core', [Glob('%s' % p) for p in ['*.c', '*.cpp']])
