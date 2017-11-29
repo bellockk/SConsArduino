@@ -2,5 +2,5 @@ Import('env')
 local_env = env.Clone()
 local_env.Append(LIBPATH=['../arduino'],
                  CPPPATH=['../arduino'],
-                 LIBS=['core'])
+                 LIBS=['core_c', 'core_cpp', 'core_S'])
 local_env.StaticLibrary('main.cpp')

@@ -60,6 +60,7 @@ env.Replace(
     CPPFLAGS='${compiler_cpp_flags}',
     LINKFLAGS='${compiler_ldflags}',
     CCCOM='${recipe_c_o_pattern}',
+    ASCOM='${recipe_S_o_pattern}',
     CXXCOM='${recipe_cpp_o_pattern}',
     ARCOM='${recipe_ar_pattern}')
 env.Append(CPPPATH=['${AVR_PREFIX}/variants/${build_variant}'])
