@@ -2,6 +2,8 @@ Import('env')
 local_env = env.Clone()
 local_env.Append(CPPPATH='.')
 objects = []
-for c in Glob('*.c') + Glob('*.cpp') + Glob('*.S'):
+for c in Glob('*.c') + Glob('*.cpp'):
     objects.append(local_env.StaticObject('${SOURCE.file}${OBJSUFFIX}', c))
+for c in Glob('*.S'):
+    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c, '${ASCOM}'))
 local_env.StaticLibrary('core', objects)

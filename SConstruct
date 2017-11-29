@@ -53,7 +53,7 @@ parse_platform(env.subst('${AVR_BOARDS}'), env, GetOption('board'))
 parse_platform(env.subst('${AVR_PLATFORM}'), env)
 env.Replace(
     CC='${compiler_c_cmd}',
-    AS='${compiler_c_cmd}',
+    AS='${compiler_S_cmd}',
     AR='${compiler_ar_cmd}',
     CXX='${compiler_cpp_cmd}',
     CFLAGS='${compiler_c_flags}',
@@ -65,6 +65,7 @@ env.Replace(
     ARCOM='${recipe_ar_pattern}')
 env.Append(CPPPATH=['${AVR_PREFIX}/variants/${build_variant}'])
 Repository(env.subst('${AVR_CORES}'))
+print(env.Dump())
 Export('env')
 artifacts = SConscript('arduino/SConscript', variant_dir='build/arduino', duplicate=0)
 artifacts = SConscript('src/SConscript', variant_dir='build/src', duplicate=0)
