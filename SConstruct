@@ -48,9 +48,12 @@ env = Environment(
     object_file='${TARGET}',
     includes='${_CPPINCFLAGS}',
     build_path='${TARGET.dir}',
-    archive_file='${TARGET.file}')
+    archive_file='${TARGET.file}',
+    build_arch='AVR')
 parse_platform(env.subst('${AVR_BOARDS}'), env, GetOption('board'))
 parse_platform(env.subst('${AVR_PLATFORM}'), env)
+with open(env.subst('${ARDUINO_PREFIX}/lib/version.txt'), 'r') as f:
+    major, minor, build = [int(n) for n in f.read().split('.')]
 env.Replace(
     CC='${compiler_c_cmd}',
     AS='${compiler_S_cmd}',
@@ -62,10 +65,10 @@ env.Replace(
     CCCOM='${recipe_c_o_pattern}',
     ASCOM='${recipe_S_o_pattern}',
     CXXCOM='${recipe_cpp_o_pattern}',
-    ARCOM='${recipe_ar_pattern}')
+    ARCOM='${recipe_ar_pattern}',
+    runtime_ide_version='%d%02d%02d' % (major, minor, build))
 env.Append(CPPPATH=['${AVR_PREFIX}/variants/${build_variant}'])
 Repository(env.subst('${AVR_CORES}'))
-print(env.Dump())
 Export('env')
 artifacts = SConscript('arduino/SConscript', variant_dir='build/arduino', duplicate=0)
 artifacts = SConscript('src/SConscript', variant_dir='build/src', duplicate=0)
