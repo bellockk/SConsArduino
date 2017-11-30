@@ -1,6 +1,20 @@
 Import('env')
 local_env = env.Clone()
 local_env.Append(LIBPATH=['../arduino'],
-                 CPPPATH=['../arduino'],
-                 LIBS=['core_c', 'core_cpp', 'core_S'])
-local_env.StaticLibrary('main.cpp')
+                 CPPPATH=['../arduino'])
+objects = []
+for c in Glob('*.c'):
+    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c,
+                   '${recipe_c_o_pattern}',
+                   source_file='${SOURCE}',
+                   object_file='${TARGET}'))
+for cpp in Glob('*.cpp'):
+    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', cpp,
+                   '${recipe_cpp_o_pattern}',
+                   source_file='${SOURCE}',
+                   object_file='${TARGET}'))
+for c in Glob('*.S'):
+    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c,
+                                     '${recipe_S_o_pattern}',
+                                     source_file='${SOURCE}',
+                                     object_file='${TARGET}'))

@@ -44,28 +44,14 @@ env = Environment(
     AVR_CORES='${AVR_PREFIX}/cores',
     AVR_BOARD=GetOption('board'),
     build_mcu=GetOption('CPU'),
-    source_file='${SOURCE}',
-    object_file='${TARGET}',
     includes='${_CPPINCFLAGS}',
     build_path='${TARGET.dir}',
-    archive_file='${TARGET.file}',
     build_arch='AVR')
 parse_platform(env.subst('${AVR_BOARDS}'), env, GetOption('board'))
 parse_platform(env.subst('${AVR_PLATFORM}'), env)
 with open(env.subst('${ARDUINO_PREFIX}/lib/version.txt'), 'r') as f:
     major, minor, build = [int(n) for n in f.read().split('.')]
 env.Replace(
-    CC='${compiler_c_cmd}',
-    AS='${compiler_S_cmd}',
-    AR='${compiler_ar_cmd}',
-    CXX='${compiler_cpp_cmd}',
-    CFLAGS='${compiler_c_flags}',
-    CPPFLAGS='${compiler_cpp_flags}',
-    LINKFLAGS='${compiler_ldflags}',
-    CCCOM='${recipe_c_o_pattern}',
-    ASCOM='${recipe_S_o_pattern}',
-    CXXCOM='${recipe_cpp_o_pattern}',
-    ARCOM='${recipe_ar_pattern}',
     runtime_ide_version='%d%02d%02d' % (major, minor, build))
 env.Append(CPPPATH=['${AVR_PREFIX}/variants/${build_variant}'])
 Repository(env.subst('${AVR_CORES}'))

@@ -1,19 +1,33 @@
 #include <Arduino.h>
-// This is just a mockup sketch for test scons works
 
-#define PIN_LED 13
+// Declared weak in Arduino.h to allow user redefinitions.
+int atexit(void (* /*func*/ )()) { return 0; }
 
-void setup(void)
+// Weak empty variant initialization function.
+// May be redefined by variant files.
+void initVariant() __attribute__((weak));
+void initVariant() { }
+
+void setupUSB() __attribute__((weak));
+void setupUSB() { }
+
+int main(void)
 {
-  pinMode(PIN_LED, OUTPUT);
+	// init();
+
+	initVariant();
+
+#if defined(USBCON)
+	USBDevice.attach();
+#endif
+	
+	// setup();
+    
+	for (;;) {
+		loop();
+		if (serialEventRun) serialEventRun();
+	}
+        
+	return 0;
 }
 
-void loop(void)
-{
-  digitalWrite(PIN_LED, HIGH);
-  delay(1000);
-  digitalWrite(PIN_LED, LOW);
-  delay(1000);
-}
-
-/* vim: set sw=2 et: */
