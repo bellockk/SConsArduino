@@ -7,5 +7,20 @@ To use:
 
 1. Install Arduino IDE
 2. Update src/main.cpp with your code.
-3. >> scons
-4. >> bin/upload
+3. Build
+```
+>> scons
+```
+4. Upload to Arduino
+```
+>> bin/upload
+```
+
+The followng options are available on SCons to configure Arduino options.
+```
+Local Options:
+  --board=BOARD               board tag [default: nano]
+  --port=PORT                 tty port [default: /dev/ttyUSB0]
+  --cpu=CPU                   processor [default: atmega328p]
+  --baud=BAUD                 baud rate [default: 57600]
+```
