@@ -29,13 +29,17 @@ def parse_platform(platform_file_path, env, prefix=None):
             env[key] = value
 
 AddOption('--board', dest='board', type='string', nargs=1, action='store',
-          metavar='BOARD', default='nano', help='board tag [default: %default]')
+          metavar='BOARD', default='nano',
+          help='board tag [default: %default]')
 AddOption('--port', dest='port', type='string', nargs=1, action='store',
-          metavar='PORT', default='/dev/ttyUSB0', help='tty port [default: %default]')
+          metavar='PORT', default='/dev/ttyUSB0',
+          help='tty port [default: %default]')
 AddOption('--cpu', dest='CPU', type='string', nargs=1, action='store',
-          metavar='CPU', default='atmega328p', help='processor [default: %default]')
+          metavar='CPU', default='atmega328p',
+          help='processor [default: %default]')
 AddOption('--baud', dest='baud', type='string', nargs=1, action='store',
-          metavar='BAUD', default='57600', help='baud rate [default: %default]')
+          metavar='BAUD', default='57600',
+          help='baud rate [default: %default]')
 
 env = Environment(
     ARDUINO_PREFIX='/usr/share/arduino',
@@ -62,5 +66,10 @@ env.Replace(
 env.Append(CPPPATH=['${AVR_PREFIX}/variants/${build_variant}'])
 Repository(env.subst('${AVR_CORES}'))
 Export('env')
-artifacts = SConscript('arduino/SConscript', variant_dir='build/arduino', duplicate=0)
-artifacts = SConscript('src/SConscript', variant_dir='build/src', duplicate=0)
+
+# Build the Core Library
+SConscript('arduino/SConscript', variant_dir='build/arduino', duplicate=0)
+
+# Build the Arduino Target
+upload = SConscript('src/SConscript', variant_dir='build/src', duplicate=0)
+Install('bin', upload)

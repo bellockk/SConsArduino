@@ -43,5 +43,4 @@ bin = local_env.Command(
     config_path='${tools_avrdude_config_path}',
     tools_avrdude_upload_pattern=local_env['tools_avrdude_upload_pattern'].replace(
         '${build_path}/${build_project_name}.hex', '${SOURCE}'))
-
 Return('bin')
