@@ -13,7 +13,7 @@ void setupUSB() { }
 
 int main(void)
 {
-	// init();
+	init();
 
 	initVariant();
 
