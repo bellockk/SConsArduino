@@ -34,6 +34,8 @@ AddOption('--port', dest='port', type='string', nargs=1, action='store',
           metavar='PORT', default='/dev/ttyACM0', help='tty port [default: %default]')
 AddOption('--cpu', dest='CPU', type='string', nargs=1, action='store',
           metavar='CPU', default='atmega328p', help='processor [default: %default]')
+AddOption('--baud', dest='baud', type='string', nargs=1, action='store',
+          metavar='BAUD', default='57600', help='baud rate [default: %default]')
 
 env = Environment(
     ARDUINO_PREFIX='/usr/share/arduino',
@@ -44,8 +46,12 @@ env = Environment(
     AVR_CORES='${AVR_PREFIX}/cores',
     AVR_BOARD=GetOption('board'),
     build_mcu=GetOption('CPU'),
+    serial_port=GetOption('port'),
+    upload_speed=GetOption('baud'),
+    path='/',
     includes='${_CPPINCFLAGS}',
     build_path='${TARGET.dir}',
+    build_project_name='${TARGET.name}',
     build_arch='AVR')
 parse_platform(env.subst('${AVR_BOARDS}'), env, GetOption('board'))
 parse_platform(env.subst('${AVR_PLATFORM}'), env)

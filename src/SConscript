@@ -18,3 +18,30 @@ for c in Glob('*.S'):
                                      '${recipe_S_o_pattern}',
                                      source_file='${SOURCE}',
                                      object_file='${TARGET}'))
+elf = local_env.Command(
+    'target.elf', [objects, '../arduino/libcore.a'],
+    '${recipe_c_combine_pattern}',
+    recipe_c_combine_pattern=local_env['recipe_c_combine_pattern'].replace(
+        '"${build_path}/${archive_file}"', '').replace('.elf', ''),
+    object_files='${SOURCES}')
+eep = local_env.Command(
+    'target.eep', elf,
+    '${recipe_objcopy_eep_pattern}',
+    recipe_objcopy_eep_pattern=local_env['recipe_objcopy_eep_pattern'].replace(
+        '.eep', '').replace('"${build_path}/${build_project_name}.elf"',
+                            '${SOURCE}'))
+hex = local_env.Command(
+    'target.hex', elf,
+    '${recipe_objcopy_hex_pattern}',
+    recipe_objcopy_hex_pattern=local_env['recipe_objcopy_hex_pattern'].replace(
+        '.hex', '').replace('"${build_path}/${build_project_name}.elf"',
+                            '${SOURCE}'))
+bin = local_env.Command(
+    'upload', hex,
+    'echo ${tools_avrdude_upload_pattern} > ${TARGET}',
+    cmd_path='${tools_avrdude_cmd_path}',
+    config_path='${tools_avrdude_config_path}',
+    tools_avrdude_upload_pattern=local_env['tools_avrdude_upload_pattern'].replace(
+        '${build_path}/${build_project_name}.hex', '${SOURCE}'))
+
+Return('bin')
