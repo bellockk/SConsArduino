@@ -31,7 +31,7 @@ def parse_platform(platform_file_path, env, prefix=None):
 AddOption('--board', dest='board', type='string', nargs=1, action='store',
           metavar='BOARD', default='nano', help='board tag [default: %default]')
 AddOption('--port', dest='port', type='string', nargs=1, action='store',
-          metavar='PORT', default='/dev/ttyACM0', help='tty port [default: %default]')
+          metavar='PORT', default='/dev/ttyUSB0', help='tty port [default: %default]')
 AddOption('--cpu', dest='CPU', type='string', nargs=1, action='store',
           metavar='CPU', default='atmega328p', help='processor [default: %default]')
 AddOption('--baud', dest='baud', type='string', nargs=1, action='store',
