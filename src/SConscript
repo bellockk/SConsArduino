@@ -1,7 +1,7 @@
 Import('env')
 local_env = env.Clone()
 local_env.Append(LIBPATH=['../arduino'],
-                 CPPPATH=['../arduino'])
+                 CPPPATH=['../arduino', '.', 'utility'])
 objects = []
 for c in Glob('*.c'):
     objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c,
