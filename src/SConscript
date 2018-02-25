@@ -1,25 +1,82 @@
 Import('env')
 local_env = env.Clone()
+
+# Collect Our Source to Build
+sources = [source for pattern in [
+    '*.c', '*.cpp', '*.S'] for source in Glob(pattern)]
+
+# SD Library
+sources.extend([File('../../contrib/SD/src/SD.cpp'),
+                File('../../contrib/SD/src/File.cpp'),
+                File('../../contrib/SD/src/utility/Sd2Card.cpp'),
+                File('../../contrib/SD/src/utility/SdFile.cpp'),
+                File('../../contrib/SD/src/utility/SdVolume.cpp')])
+local_env.Append(CPPPATH=['../../contrib/SD/src',
+                          '../../contrib/SD/src/utility'])
+
+# Liquid Crystal Library
+sources.extend([File('../../contrib/LiquidCrystal/src/LiquidCrystal.cpp')])
+local_env.Append(CPPPATH=['../../contrib/LiquidCrystal/src'])
+
+# Real Time Clock Library
+sources.extend([File('../../contrib/Rtc/src/RtcDateTime.cpp'),
+                File('../../contrib/Rtc/src/RtcUtility.cpp')])
+local_env.Append(CPPPATH=['../../contrib/Rtc/src'])
+
+# One Wire Library
+sources.extend([File('../../contrib/OneWire/OneWire.cpp')])
+local_env.Append(CPPPATH=['../../contrib/OneWire',
+                          '../../contrib/OneWire/util'])
+
+# Arduino Temperature Control Library
+sources.extend([File(
+    '../../contrib/Arduino-Temperature-Control-Library/DallasTemperature.cpp')])
+local_env.Append(CPPPATH=['../../contrib/Arduino-Temperature-Control-Library'])
+
+# SPI Library
+sources.extend([File(
+    '/usr/share/arduino/hardware/arduino/avr/libraries/SPI/src/SPI.cpp')])
+local_env.Append(CPPPATH=[
+    '/usr/share/arduino/hardware/arduino/avr/libraries/SPI/src'])
+
+# Wire Library
+sources.extend([
+    File('/usr/share/arduino/hardware/arduino/avr/libraries/Wire/src/Wire.cpp'),
+    File('/usr/share/arduino/hardware/arduino/avr/libraries/Wire/src/utility/twi.c')])
+local_env.Append(CPPPATH=[
+    '/usr/share/arduino/hardware/arduino/avr/libraries/Wire/src',
+    '/usr/share/arduino/hardware/arduino/avr/libraries/Wire/src/utility'])
+
+# Core Arduino Library Includes
 local_env.Append(LIBPATH=['../arduino'],
                  CPPPATH=['../arduino', '.', 'utility'])
+
+# Build Object Files
 objects = []
-for c in Glob('*.c'):
-    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c,
-                   '${recipe_c_o_pattern}',
-                   source_file='${SOURCE}',
-                   object_file='${TARGET}'))
-for cpp in Glob('*.cpp'):
-    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', cpp,
-                   '${recipe_cpp_o_pattern}',
-                   source_file='${SOURCE}',
-                   object_file='${TARGET}'))
-for c in Glob('*.S'):
-    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c,
-                                     '${recipe_S_o_pattern}',
-                                     source_file='${SOURCE}',
-                                     object_file='${TARGET}'))
+for source in sources:
+    if source.abspath.lower().endswith('.c'):
+        objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', source,
+                                         '${recipe_c_o_pattern}',
+                                         source_file='${SOURCE}',
+                                         object_file='${TARGET}'))
+    elif source.abspath.lower().endswith('.cpp'):
+        objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', source,
+                                         '${recipe_cpp_o_pattern}',
+                                         source_file='${SOURCE}',
+                                         object_file='${TARGET}'))
+    elif source.abspath.lower().endswith('.s'):
+        objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', source,
+                                         '${recipe_S_o_pattern}',
+                                         source_file='${SOURCE}',
+                                         object_file='${TARGET}'))
+    else:
+        print('I do not know how to build specified source file: %s' % source)
+
+# Append the Arduino Library to the List of Objects
+objects.append(File('../arduino/libcore.a'))
+
 elf = local_env.Command(
-    'target.elf', [objects, '../arduino/libcore.a'],
+    'target.elf', objects,
     '${recipe_c_combine_pattern}',
     recipe_c_combine_pattern=local_env['recipe_c_combine_pattern'].replace(
         '"${build_path}/${archive_file}"', '').replace('.elf', ''),
@@ -36,6 +93,7 @@ hex = local_env.Command(
     recipe_objcopy_hex_pattern=local_env['recipe_objcopy_hex_pattern'].replace(
         '.hex', '').replace('"${build_path}/${build_project_name}.elf"',
                             '${SOURCE}'))
+
 bin = local_env.Command(
     'upload', hex,
     'echo ${tools_avrdude_upload_pattern} > ${TARGET}',

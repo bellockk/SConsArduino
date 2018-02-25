@@ -1,0 +1,15 @@
+[submodule "contrib/Rtc"]
+	path = contrib/Rtc
+	url = https://github.com/Makuna/Rtc
+[submodule "contrib/LiquidCrystal"]
+	path = contrib/LiquidCrystal
+	url = https://github.com/arduino-libraries/LiquidCrystal
+[submodule "contrib/Arduino-Temperature-Control-Library"]
+	path = contrib/Arduino-Temperature-Control-Library
+	url = https://github.com/milesburton/Arduino-Temperature-Control-Library.git
+[submodule "contrib/SD"]
+	path = contrib/SD
+	url = https://github.com/arduino-libraries/SD
+[submodule "contrib/OneWire"]
+	path = contrib/OneWire
+	url = https://github.com/PaulStoffregen/OneWire
