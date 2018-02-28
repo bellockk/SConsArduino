@@ -19,7 +19,7 @@
 // Temperature Sensor
 const int temp_pin = 2;
 OneWire oneWire(temp_pin);
-DallasTemperature sensors(&oneWire);
+DallasTemperature temperature_sensor(&oneWire);
 
 // SD Card Reader
 const int chip_select = 3;
@@ -77,7 +77,7 @@ int main(void)
     /////////////////////
 
     // Initialize Temperature Sensor
-    sensors.begin();
+    temperature_sensor.begin();
 
     // set up the LCD's number of columns and rows:
     lcd.begin(16, 2);
@@ -195,8 +195,8 @@ int main(void)
 
                 // Get Temperature
                 lcd.setCursor(10,1);
-                sensors.requestTemperatures();
-                lcd.print(sensors.getTempFByIndex(0));
+                temperature_sensor.requestTemperatures();
+                lcd.print(temperature_sensor.getTempFByIndex(0));
 
                 // Write Record
                 lcd.setCursor(10,0);
@@ -208,7 +208,7 @@ int main(void)
                     data_file_object.print(", ");
                     data_file_object.print(sensed_level_2);
                     data_file_object.print(", ");
-                    data_file_object.println(sensors.getTempFByIndex(0));
+                    data_file_object.println(temperature_sensor.getTempFByIndex(0));
                     data_file_object.flush();
                 }
             }
