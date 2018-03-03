@@ -16,20 +16,23 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+// Circular Buffer (Button Bounce Removal)
+#include <CircularBuffer.h>
+
 // Temperature Sensor
-const int temp_pin = 2;
+const byte temp_pin = 2;
 OneWire oneWire(temp_pin);
 DallasTemperature temperature_sensor(&oneWire);
 
 // SD Card Reader
-const int chip_select = 3;
+const byte chip_select = 3;
 String data_filename;
 File data_file_object;
 unsigned long frame_counter = 0;
 
 // Water Sensors
-const int water_level_1_pin = 0;
-const int water_level_2_pin = 1;
+const byte water_level_1_pin = 1;
+const byte water_level_2_pin = 0;
 
 // Clock
 RtcDS3231<TwoWire> Rtc(Wire);
@@ -38,17 +41,14 @@ uint8_t last_second = 0;
 // Display
 LiquidCrystal lcd(7, 8, 9, 10, 4, 5);
 
-// Button Pin
-int button_pin = 6;
-
-// Button States
-int button_state = LOW;
-int button_sensed = LOW;
-int button_last_state = LOW;
-
-// Bounce Parameters
-long bounce_time = 0;
-const long debounce = 40;
+// Button
+const byte button_pin = 6;
+byte button_state = LOW;
+byte button_last_state = LOW;
+byte toggle_state = LOW;
+byte toggle_last_state = LOW;
+byte button_sensed;
+CircularBuffer<byte, 10> button_buffer;
 
 // Declared weak in Arduino.h to allow user redefinitions.
 int atexit(void (* /*func*/ )()) { return 0; }
@@ -82,9 +82,6 @@ int main(void)
     // set up the LCD's number of columns and rows:
     lcd.begin(16, 2);
 
-    // Print a message to the LCD.
-    // lcd.print("Lets Go Alex!");
-
     // Initialize SD Card
     lcd.setCursor(12,0);
     if (!SD.begin(chip_select)) {
@@ -110,7 +107,10 @@ int main(void)
     Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone); 
     last_second = now.Second();
 
+    // Set built-in LED Mode
     pinMode(LED_BUILTIN, OUTPUT);
+
+    // Setup Button Pin
     pinMode(button_pin, INPUT_PULLUP);  
 
     for (;;) {
@@ -119,13 +119,6 @@ int main(void)
         /////////////////////
 
         // Update Clock
-        lcd.setCursor(15,0);
-        if (!Rtc.IsDateTimeValid()) {
-            lcd.print("E");
-        }
-        else {
-            lcd.print(" ");
-        }
         RtcDateTime now = Rtc.GetDateTime();
         char datestring[20];
         snprintf_P(datestring, 
@@ -139,29 +132,59 @@ int main(void)
 
         // Get Button State
         button_sensed = digitalRead(button_pin);
-        if (button_sensed == HIGH && button_last_state == LOW && millis() - bounce_time > debounce) {
-            lcd.setCursor(13,0);
-            if (button_state == HIGH){
-                button_state = LOW;
-                lcd.print(" ");
-                if (data_file_object) {
-                    data_file_object.close();
-                }
+        button_buffer.push(byte(button_sensed));
+        byte sum = 0;
+        for (unsigned int i = 0; i < button_buffer.size(); i++){
+            sum += button_buffer[i];
+        }
+        if (button_last_state == LOW && sum > 7) {
+            button_state = HIGH;
+            lcd.setCursor(14,0);
+            lcd.print("B");
+        }
+        else if (button_last_state == HIGH && sum < 3) {
+            button_state = LOW;
+            lcd.setCursor(14,0);
+            lcd.print(" ");
+            if (toggle_last_state == LOW) {
+                toggle_state = HIGH;
                 frame_counter = 0;
-            }
-            else {
-                button_state = HIGH;
+                lcd.setCursor(15,0);
                 lcd.print("R");
             }
-            bounce_time = millis();
+            else {
+                toggle_state = LOW;
+                if (data_file_object) {
+                    data_file_object.close();
+                    lcd.setCursor(9,1);
+                    lcd.print("       ");
+                }
+                lcd.setCursor(15,0);
+                lcd.print(" ");
+            }
+            frame_counter = 0;
         }
-        digitalWrite(LED_BUILTIN, button_state);
-        button_last_state = button_sensed;
+        toggle_last_state = toggle_state;
+        button_last_state = button_state;
 
         // Record Data at 1Hz
         uint8_t current_second = now.Second();
         if (current_second != last_second) {
-            if (button_state == HIGH) {
+
+            // Water Level Sensor
+            int sensed_level_1 = analogRead(water_level_1_pin);
+            int sensed_level_2 = analogRead(water_level_2_pin);
+            lcd.setCursor(0,0);
+            lcd.print(sensed_level_1);
+            lcd.setCursor(4,0);
+            lcd.print(sensed_level_2);
+
+            // Get Temperature
+            lcd.setCursor(8,0);
+            temperature_sensor.requestTemperatures();
+            lcd.print(temperature_sensor.getTempFByIndex(0));
+
+            if (toggle_state == HIGH) {
                 if (frame_counter == 0) {
                     // Initialize Log File
                     char filename[13];
@@ -173,41 +196,27 @@ int main(void)
                             now.Hour(),
                             now.Minute());
                     data_file_object = SD.open(filename, FILE_WRITE);
-                    lcd.setCursor(14,0);
+                    lcd.setCursor(13,0);
                     if (!data_file_object) {
                         lcd.print("E");
                     }
                     else {
-                        // Write Header
                         lcd.print(" ");
                         data_file_object.println("frame_s, level1, level2, temp_f");
                     }
                 }
                 frame_counter++;
 
-                // Water Level Sensor
-                int sensed_level_1 = analogRead(water_level_1_pin);
-                int sensed_level_2 = analogRead(water_level_2_pin);
-                lcd.setCursor(0,0);
-                lcd.print(sensed_level_1);
-                lcd.setCursor(5,0);
-                lcd.print(sensed_level_2);
-
-                // Get Temperature
-                lcd.setCursor(10,1);
-                temperature_sensor.requestTemperatures();
-                lcd.print(temperature_sensor.getTempFByIndex(0));
-
                 // Write Record
-                lcd.setCursor(10,0);
+                lcd.setCursor(9,1);
                 lcd.print(frame_counter);
                 if (data_file_object) {
                     data_file_object.print(frame_counter);
-                    data_file_object.print(", ");
+                    data_file_object.print(",");
                     data_file_object.print(sensed_level_1);
-                    data_file_object.print(", ");
+                    data_file_object.print(",");
                     data_file_object.print(sensed_level_2);
-                    data_file_object.print(", ");
+                    data_file_object.print(",");
                     data_file_object.println(temperature_sensor.getTempFByIndex(0));
                     data_file_object.flush();
                 }

@@ -13,3 +13,6 @@
 [submodule "contrib/OneWire"]
 	path = contrib/OneWire
 	url = https://github.com/PaulStoffregen/OneWire
+[submodule "contrib/CircularBuffer"]
+	path = contrib/CircularBuffer
+	url = https://github.com/rlogiacco/CircularBuffer

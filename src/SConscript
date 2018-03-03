@@ -5,6 +5,9 @@ local_env = env.Clone()
 sources = [source for pattern in [
     '*.c', '*.cpp', '*.S'] for source in Glob(pattern)]
 
+# Circular Buffer
+local_env.Append(CPPPATH=['../../contrib/CircularBuffer'])
+
 # SD Library
 sources.extend([File('../../contrib/SD/src/SD.cpp'),
                 File('../../contrib/SD/src/File.cpp'),
