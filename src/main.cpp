@@ -21,10 +21,15 @@ int main(void)
 	USBDevice.attach();
 #endif
 	
-	// setup();
+        pinMode(LED_BUILTIN, OUTPUT);
     
 	for (;;) {
-		// loop();
+
+                digitalWrite(LED_BUILTIN, HIGH);
+                delay(1000);
+                digitalWrite(LED_BUILTIN, LOW);
+                delay(1000);
+
 		if (serialEventRun) serialEventRun();
 	}
         
