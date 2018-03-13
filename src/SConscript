@@ -1,25 +1,40 @@
 Import('env')
 local_env = env.Clone()
+
+# Collect Our Source to Build
+sources = [source for pattern in [
+    '*.c', '*.cpp', '*.S'] for source in Glob(pattern)]
+
+# Core Arduino Library Includes
 local_env.Append(LIBPATH=['../arduino'],
-                 CPPPATH=['../arduino'])
+                 CPPPATH=['../arduino', '.', 'utility'])
+
+# Build Object Files
 objects = []
-for c in Glob('*.c'):
-    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c,
-                   '${recipe_c_o_pattern}',
-                   source_file='${SOURCE}',
-                   object_file='${TARGET}'))
-for cpp in Glob('*.cpp'):
-    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', cpp,
-                   '${recipe_cpp_o_pattern}',
-                   source_file='${SOURCE}',
-                   object_file='${TARGET}'))
-for c in Glob('*.S'):
-    objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', c,
-                                     '${recipe_S_o_pattern}',
-                                     source_file='${SOURCE}',
-                                     object_file='${TARGET}'))
+for source in sources:
+    if source.abspath.lower().endswith('.c'):
+        objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', source,
+                                         '${recipe_c_o_pattern}',
+                                         source_file='${SOURCE}',
+                                         object_file='${TARGET}'))
+    elif source.abspath.lower().endswith('.cpp'):
+        objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', source,
+                                         '${recipe_cpp_o_pattern}',
+                                         source_file='${SOURCE}',
+                                         object_file='${TARGET}'))
+    elif source.abspath.lower().endswith('.s'):
+        objects.append(local_env.Command('${SOURCE.file}${OBJSUFFIX}', source,
+                                         '${recipe_S_o_pattern}',
+                                         source_file='${SOURCE}',
+                                         object_file='${TARGET}'))
+    else:
+        print('I do not know how to build specified source file: %s' % source)
+
+# Append the Arduino Library to the List of Objects
+objects.append(File('../arduino/libcore.a'))
+
 elf = local_env.Command(
-    'target.elf', [objects, '../arduino/libcore.a'],
+    'target.elf', objects,
     '${recipe_c_combine_pattern}',
     recipe_c_combine_pattern=local_env['recipe_c_combine_pattern'].replace(
         '"${build_path}/${archive_file}"', '').replace('.elf', ''),
@@ -36,6 +51,7 @@ hex = local_env.Command(
     recipe_objcopy_hex_pattern=local_env['recipe_objcopy_hex_pattern'].replace(
         '.hex', '').replace('"${build_path}/${build_project_name}.elf"',
                             '${SOURCE}'))
+
 bin = local_env.Command(
     'upload', hex,
     'echo ${tools_avrdude_upload_pattern} > ${TARGET}',
